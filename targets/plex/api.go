@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -13,24 +14,35 @@ import (
 )
 
 type apiClient struct {
-	client  *http.Client
-	log     zerolog.Logger
-	baseURL string
-	token   string
+	client           *http.Client
+	log              zerolog.Logger
+	baseURL          string
+	token            string
+	product          string
+	clientIdentifier string
 }
 
-func newAPIClient(baseURL string, token string, log zerolog.Logger) *apiClient {
+func newAPIClient(baseURL string, token string, log zerolog.Logger, timeout time.Duration, product string, clientIdentifier string) *apiClient {
+	client := &http.Client{}
+	if timeout > 0 {
+		client.Timeout = timeout
+	}
+
 	return &apiClient{
-		client:  &http.Client{},
-		log:     log,
-		baseURL: baseURL,
-		token:   token,
+		client:           client,
+		log:              log,
+		baseURL:          baseURL,
+		token:            token,
+		product:          product,
+		clientIdentifier: clientIdentifier,
 	}
 }
 
 func (c apiClient) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("X-Plex-Token", c.token)
 	req.Header.Set("Accept", "application/json") // Force JSON Response.
+	req.Header.Set("X-Plex-Product", c.product)
+	req.Header.Set("X-Plex-Client-Identifier", c.clientIdentifier)
 
 	res, err := c.client.Do(req)
 	if err != nil {

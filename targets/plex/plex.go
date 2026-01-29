@@ -2,8 +2,10 @@ package plex
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -11,10 +13,13 @@ import (
 )
 
 type Config struct {
-	URL       string             `yaml:"url"`
-	Token     string             `yaml:"token"`
-	Rewrite   []autoscan.Rewrite `yaml:"rewrite"`
-	Verbosity string             `yaml:"verbosity"`
+	URL              string             `yaml:"url"`
+	Token            string             `yaml:"token"`
+	Rewrite          []autoscan.Rewrite `yaml:"rewrite"`
+	Verbosity        string             `yaml:"verbosity"`
+	Timeout          string             `yaml:"timeout"`
+	Product          string             `yaml:"product"`
+	ClientIdentifier string             `yaml:"client-identifier"`
 }
 
 type target struct {
@@ -37,7 +42,22 @@ func New(c Config) (autoscan.Target, error) {
 		return nil, err
 	}
 
-	api := newAPIClient(c.URL, c.Token, l)
+	timeout, err := parseTimeout(c.Timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	product := c.Product
+	if strings.TrimSpace(product) == "" {
+		product = "autoscan"
+	}
+
+	clientIdentifier := c.ClientIdentifier
+	if strings.TrimSpace(clientIdentifier) == "" {
+		clientIdentifier = defaultClientIdentifier(c.URL)
+	}
+
+	api := newAPIClient(c.URL, c.Token, l, timeout, product, clientIdentifier)
 
 	version, err := api.Version()
 	if err != nil {
@@ -67,6 +87,37 @@ func New(c Config) (autoscan.Target, error) {
 		rewrite: rewriter,
 		api:     api,
 	}, nil
+}
+
+func parseTimeout(raw string) (time.Duration, error) {
+	if strings.TrimSpace(raw) == "" {
+		return 0, nil
+	}
+
+	timeout, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("invalid plex timeout %q: %w", raw, err)
+	}
+
+	if timeout <= 0 {
+		return 0, fmt.Errorf("invalid plex timeout %q: must be greater than zero", raw)
+	}
+
+	return timeout, nil
+}
+
+func defaultClientIdentifier(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Host == "" {
+		return "autoscan"
+	}
+
+	host := strings.TrimPrefix(parsed.Host, "www.")
+	if host == "" {
+		return "autoscan"
+	}
+
+	return fmt.Sprintf("autoscan-%s", host)
 }
 
 func (t target) Available() error {
