@@ -382,6 +382,9 @@ targets:
   plex:
     - url: https://plex.domain.tld # URL of your Plex server
       token: XXXX # Plex API Token
+      timeout: 10s # Optional Plex request timeout (e.g., 30s, 2m)
+      product: autoscan # Optional Plex product name reported to the server
+      client-identifier: autoscan-plex # Optional Plex client identifier for API requests
       rewrite:
         - from: /mnt/unionfs/Media/ # local file system
           to: /data/ # path accessible by the Plex docker container (if applicable)
@@ -391,6 +394,9 @@ There are a couple of things to take note of in the config:
 
 - URL. The URL can link to the docker container directly, the localhost or a reverse proxy sitting in front of Plex.
 - Token. We need a Plex API Token to make requests on your behalf. [This article](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) should help you out.
+- Timeout. Optional request timeout for Plex API calls. Use Go duration strings like `10s`, `1m30s`, or `2m`.
+- Product. Optional product name reported to Plex via API headers.
+- Client identifier. Optional client identifier reported to Plex via API headers.
 - Rewrite. If Plex is not running on the host OS, but in a Docker container (or Autoscan is running in a Docker container), then you need to rewrite paths accordingly. Check out our [rewriting section](#rewriting-paths) for more info.
 
 ### Emby
@@ -506,6 +512,9 @@ targets:
   plex:
     - url: https://plex.domain.tld # URL of your Plex server
       token: XXXX # Plex API Token
+      timeout: 10s # Optional Plex request timeout (e.g., 30s, 2m)
+      product: autoscan # Optional Plex product name reported to the server
+      client-identifier: autoscan-plex # Optional Plex client identifier for API requests
       rewrite:
         - from: /mnt/unionfs/Media/ # local file system
           to: /data/ # path accessible by the Plex docker container (if applicable)
@@ -541,6 +550,7 @@ host:
 ### Docker
 
 Autoscan has an accompanying docker image which can be found on [Docker Hub](https://hub.docker.com/r/cloudb0x/autoscan).
+We also provide a Debian-based Dockerfile at `docker/Dockerfile.debian` for users who prefer a Debian base image.
 
 Autoscan requires access to all files being passed between the triggers and the targets. \
 *Just mount the source directory, for many people this is `/mnt/unionfs`.*

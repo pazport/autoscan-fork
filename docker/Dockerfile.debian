@@ -1,0 +1,26 @@
+FROM debian:bookworm-slim
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV \
+  PATH="/app/autoscan:${PATH}" \
+  AUTOSCAN_CONFIG="/config/config.yml" \
+  AUTOSCAN_DATABASE="/config/autoscan.db" \
+  AUTOSCAN_LOG="/config/activity.log" \
+  AUTOSCAN_VERBOSITY="0"
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/autoscan
+
+COPY ["dist/autoscan_${TARGETOS}_${TARGETARCH}${TARGETVARIANT:+_7}/autoscan", "/app/autoscan/autoscan"]
+
+VOLUME ["/config"]
+
+EXPOSE 3030
+
+ENTRYPOINT ["/app/autoscan/autoscan"]
