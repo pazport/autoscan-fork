@@ -550,6 +550,7 @@ host:
 ### Docker
 
 Autoscan has an accompanying docker image which can be found on [Docker Hub](https://hub.docker.com/r/cloudb0x/autoscan).
+We also provide a Debian-based Dockerfile at `docker/Dockerfile.debian` for users who prefer a Debian base image.
 
 Autoscan requires access to all files being passed between the triggers and the targets. \
 *Just mount the source directory, for many people this is `/mnt/unionfs`.*
