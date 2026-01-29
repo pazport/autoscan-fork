@@ -162,6 +162,8 @@ triggers:
 
 Autoscan also supports a `manual` webhook for custom scripts or for software which is not supported by Autoscan directly. The manual endpoint is available at `/triggers/manual`.
 
+Autoscan also ships with a lightweight web UI on port `4040` with `/status`, `/config`, and `/trigger` pages. The UI uses the same basic authentication credentials configured for triggers when authentication is enabled.
+
 The manual endpoint accepts one or multiple directory paths as input and should be given one or multiple `dir` query parameters. Just like the other webhooks, the manual webhook is protected with basic authentication if the `auth` option is set in the config file of the user.
 
 URL template: `POST /triggers/manual?dir=$path1&dir=$path2`

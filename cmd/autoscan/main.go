@@ -247,6 +247,7 @@ func main() {
 
 	// http triggers
 	router := getRouter(c, proc)
+	webRouter := getWebRouter(c, proc)
 
 	for _, h := range c.Host {
 		go func(host string) {
@@ -261,6 +262,18 @@ func main() {
 					Str("addr", addr).
 					Err(err).
 					Msg("Failed starting web server")
+			}
+		}(h)
+
+		go func(host string) {
+			addr := webUIAddr(host)
+
+			log.Info().Msgf("Starting web UI on %s", addr)
+			if err := http.ListenAndServe(addr, webRouter); err != nil {
+				log.Fatal().
+					Str("addr", addr).
+					Err(err).
+					Msg("Failed starting web UI server")
 			}
 		}(h)
 	}
